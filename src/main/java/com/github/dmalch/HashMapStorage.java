@@ -2,7 +2,7 @@ package com.github.dmalch;
 
 import java.util.HashMap;
 
-public class LinkedListStorage implements Storage {
+public class HashMapStorage implements Storage {
 
     private final HashMap<Integer, Integer> table = new HashMap<Integer, Integer>();
 

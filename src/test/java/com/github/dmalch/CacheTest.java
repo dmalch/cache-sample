@@ -41,7 +41,7 @@ public class CacheTest {
             private boolean firstInvocation() {
                 return invocationCount++ == 0;
             }
-        }, new LinkedListStorage());
+        }, new HashMapStorage());
     }
 
     private int givenExpectedKey() {
