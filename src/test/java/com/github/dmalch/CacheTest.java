@@ -11,7 +11,7 @@ public class CacheTest {
     public void testWhenUserAddsElementIntoCacheThenItIsPlacedInCache() throws Exception {
         final int expectedKey = givenExpectedKey();
         final int expectedValue = givenExpectedValue();
-        final Cache cache = givenEmptyCache(expectedKey, expectedValue);
+        final Cache cache = givenEmptyCacheWith(sourceWith(expectedKey, expectedValue));
 
         whenAddElementIntoCache(cache, expectedKey);
 
@@ -26,8 +26,12 @@ public class CacheTest {
         return cache.get(key);
     }
 
-    private Cache givenEmptyCache(final int expectedKey, final int expectedValue) {
-        return new CacheImpl(new DataSource() {
+    private Cache givenEmptyCacheWith(final DataSource dataSource) {
+        return new CacheImpl(dataSource, new HashMapStorage());
+    }
+
+    private DataSource sourceWith(final int expectedKey, final int expectedValue) {
+        return new DataSource() {
             public int invocationCount = 0;
 
             @Override
@@ -41,7 +45,7 @@ public class CacheTest {
             private boolean firstInvocation() {
                 return invocationCount++ == 0;
             }
-        }, new HashMapStorage());
+        };
     }
 
     private int givenExpectedKey() {
