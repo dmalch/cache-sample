@@ -10,4 +10,6 @@ public interface Storage {
     int size();
 
     void remove(int key);
+
+    void addListener(StorageListener storageListener);
 }

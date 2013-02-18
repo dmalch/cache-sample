@@ -14,7 +14,7 @@ public class CacheTest {
     public void testWhenUserAddsElementIntoCacheThenItIsPlacedInCache() throws Exception {
         final int expectedKey = givenExpectedKey();
         final int expectedValue = givenExpectedValue();
-        final Cache cache = givenEmptyCacheWith(sourceWith(expectedKey, expectedValue));
+        final Cache cache = givenEmptyLFUCacheWith(sourceWith(expectedKey, expectedValue));
 
         whenAddElementIntoCache(cache, expectedKey);
 
@@ -22,18 +22,47 @@ public class CacheTest {
     }
 
     @Test
-    public void testWhenCacheCapacityIsExceededThenElementsAreEvicted() throws Exception {
+    public void testWhenCacheCapacityIsExceededThenElementsAreEvictedLFU() throws Exception {
         final int firstExpectedKey = givenExpectedKey();
         final int firstExpectedValue = givenExpectedValue();
         final int secondExpectedKey = givenExpectedKey();
         final int secondExpectedValue = givenExpectedValue();
-        final Cache cache = givenEmptyCacheWith(sourceWith(firstExpectedKey, firstExpectedValue, secondExpectedKey, secondExpectedValue));
+        final int thirdExpectedKey = givenExpectedKey();
+        final int thirdExpectedValue = givenExpectedValue();
+        final Cache cache = givenEmptyLFUCacheWith(sourceWith(firstExpectedKey, firstExpectedValue, secondExpectedKey, secondExpectedValue, thirdExpectedKey, thirdExpectedValue));
 
         whenAddElementIntoCache(cache, firstExpectedKey);
         whenAddElementIntoCache(cache, secondExpectedKey);
+        useElement(cache, secondExpectedKey);
+        whenAddElementIntoCache(cache, thirdExpectedKey);
 
+        thenCacheContainsElement(cache, thirdExpectedKey, thirdExpectedValue);
         thenCacheContainsElement(cache, secondExpectedKey, secondExpectedValue);
         thenCacheDoesNotContainElement(cache, firstExpectedKey);
+    }
+
+    private void useElement(final Cache cache, final int secondExpectedKey) {
+        whenAddElementIntoCache(cache, secondExpectedKey);
+    }
+
+    @Test
+    public void testWhenCacheCapacityIsExceededThenElementsAreEvictedMRU() throws Exception {
+        final int firstExpectedKey = givenExpectedKey();
+        final int firstExpectedValue = givenExpectedValue();
+        final int secondExpectedKey = givenExpectedKey();
+        final int secondExpectedValue = givenExpectedValue();
+        final int thirdExpectedKey = givenExpectedKey();
+        final int thirdExpectedValue = givenExpectedValue();
+        final Cache cache = givenEmptyMRUCacheWith(sourceWith(firstExpectedKey, firstExpectedValue, secondExpectedKey, secondExpectedValue, thirdExpectedKey, thirdExpectedValue));
+
+        whenAddElementIntoCache(cache, firstExpectedKey);
+        whenAddElementIntoCache(cache, secondExpectedKey);
+        useElement(cache, secondExpectedKey);
+        whenAddElementIntoCache(cache, thirdExpectedKey);
+
+        thenCacheContainsElement(cache, thirdExpectedKey, thirdExpectedValue);
+        thenCacheContainsElement(cache, firstExpectedKey, firstExpectedValue);
+        thenCacheDoesNotContainElement(cache, secondExpectedKey);
     }
 
     private void thenCacheDoesNotContainElement(final Cache cache, final int expectedKey) {
@@ -48,8 +77,12 @@ public class CacheTest {
         return cache.get(key);
     }
 
-    private Cache givenEmptyCacheWith(final DataSource dataSource) {
-        return new CacheImpl(1, dataSource, new HashMapStorage());
+    private Cache givenEmptyMRUCacheWith(final DataSource dataSource) {
+        return new CacheImpl(2, dataSource, new HashMapStorage(), new MostRecentlyUsedStrategy());
+    }
+
+    private Cache givenEmptyLFUCacheWith(final DataSource dataSource) {
+        return new CacheImpl(2, dataSource, new HashMapStorage(), new LeastFrequentlyUsedStrategy());
     }
 
     private DataSource sourceWith(final int expectedKey, final int expectedValue) {
@@ -60,11 +93,14 @@ public class CacheTest {
         return dataSourceFor(map);
     }
 
-    private DataSource sourceWith(final int firstExpectedKey, final int firstExpectedValue, final int secondExpectedKey, final int secondExpectedValue) {
+    private DataSource sourceWith(final int firstExpectedKey, final int firstExpectedValue,
+                                  final int secondExpectedKey, final int secondExpectedValue,
+                                  final int thirdExpectedKey, final int thirdExpectedValue) {
 
         final Map<Integer, Integer> map = new HashMap<Integer, Integer>();
         map.put(firstExpectedKey, firstExpectedValue);
         map.put(secondExpectedKey, secondExpectedValue);
+        map.put(thirdExpectedKey, thirdExpectedValue);
 
         return dataSourceFor(map);
     }

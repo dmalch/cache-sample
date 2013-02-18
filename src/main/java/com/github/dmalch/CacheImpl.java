@@ -4,11 +4,14 @@ public class CacheImpl implements Cache {
     private int maxSize;
     private DataSource dataSource;
     private Storage storage;
+    private Strategy strategy;
 
-    public CacheImpl(final int maxSize, final DataSource dataSource, final Storage storage) {
+    public CacheImpl(final int maxSize, final DataSource dataSource, final Storage storage, final Strategy strategy) {
         this.maxSize = maxSize;
         this.dataSource = dataSource;
         this.storage = storage;
+        this.strategy = strategy;
+        storage.addListener(strategy);
     }
 
     @Override
@@ -17,7 +20,7 @@ public class CacheImpl implements Cache {
             return storage.get(key);
         } else {
             if (storage.size() >= maxSize) {
-                storage.remove(0);
+                storage.remove(strategy.findElementToEvict());
             }
             final int value = dataSource.get(key);
             storage.add(key, value);
