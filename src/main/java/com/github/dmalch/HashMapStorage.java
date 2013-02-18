@@ -20,4 +20,14 @@ public class HashMapStorage implements Storage {
     public void add(final int key, final int value) {
         table.put(key, value);
     }
+
+    @Override
+    public int size() {
+        return table.size();
+    }
+
+    @Override
+    public void remove(final int key) {
+        table.remove(table.keySet().iterator().next());
+    }
 }

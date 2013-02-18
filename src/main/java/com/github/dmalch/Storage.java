@@ -6,4 +6,8 @@ public interface Storage {
     int get(int key);
 
     void add(int key, int value);
+
+    int size();
+
+    void remove(int key);
 }
